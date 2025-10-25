@@ -28,7 +28,7 @@ This PoC demonstrates efficient network monitoring for Windows VMs in enterprise
 # Stop and remove volumes
 ./run_elk_stack.sh stop
 
-# Complete cleanup (including images)
+# Complete cleanup (including images & volumes)
 ./run_elk_stack.sh destroy
 ```
 

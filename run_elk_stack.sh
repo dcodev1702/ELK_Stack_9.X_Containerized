@@ -76,7 +76,7 @@ wait_for_container_exit() {
 print_health_summary() {
 
   echo ""
-  echo "📊 Health Summary (Compose Project)"
+  echo "📊 ELK Health Summary (Compose Project)"
   echo "-----------------------------------"
 
   # Collect containers for THIS compose project

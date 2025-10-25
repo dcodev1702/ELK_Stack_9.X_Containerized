@@ -9,14 +9,14 @@ This Proof of Concept provides a containerized ELK Stack optimized for network t
 - **Elasticsearch 9.2.0** - Single-node deployment with security enabled
 - **Kibana 9.2.0** - Web UI for visualization and analysis  
 - **Packetbeat Support** - Pre-configured for Windows VM integration with aggressive noise filtering
-- **Automated Lifecycle Management** - Smart bash script for ELK stack operations
+- **Automated Lifecycle Management** - Smart bash script for stack operations
 
 ## 🎯 Use Case
 
 This PoC demonstrates efficient network monitoring for Windows VMs in enterprise environments, particularly useful for:
 - DNS traffic analysis and anomaly detection
 - Reduced storage footprint through intelligent filtering
-- Security Operations Center (SOC) visibility
+- Security operations center (SOC) visibility
 - Quick deployment for incident response scenarios
 
 ## 📦 Prerequisites
@@ -33,12 +33,15 @@ sudo sh get-docker.sh
 # Add your user to the docker group (allows running Docker without sudo)
 sudo usermod -aG docker $USER
 
+# Apply the group changes (or log out and back in)
+newgrp docker
+
 # Verify installation
 docker --version
 docker compose version
 ```
 
-**Note:** After adding your user to the docker group, you will need to log out and log back in for the changes to take effect.
+**Note:** After adding your user to the docker group, you may need to log out and log back in for the changes to take effect.
 
 ## 🚀 Quick Start
 
@@ -46,10 +49,13 @@ docker compose version
 # Start the stack
 ./run_elk_stack.sh start
 
+# Check health status
+./run_elk_stack.sh status
+
 # Stop and remove volumes
 ./run_elk_stack.sh stop
 
-# Complete cleanup (including images and volumnes)
+# Complete cleanup (including images)
 ./run_elk_stack.sh destroy
 ```
 
@@ -57,7 +63,7 @@ docker compose version
 
 ```
 .
-├── docker-compose.yml     # ELK Stack service definitions
+├── docker-compose.yml      # ELK Stack service definitions
 ├── dot.env                # Environment variables (rename to .env)
 ├── run_elk_stack.sh       # Lifecycle management script
 ├── packetbeat/
@@ -125,27 +131,40 @@ The `run_elk_stack.sh` script provides intelligent automation:
 
 ### Smart Features
 
-1. **Automatic IP Detection**
+1. **Health Status Monitoring (NEW)**
+   - Real-time cluster health display with `./run_elk_stack.sh status`
+   - Shows Elasticsearch cluster state with color-coded status (green ✅)
+   - Displays Kibana access URL and authentication details
+   - Container health table with uptime metrics (e.g., "Up 38 minutes")
+   - Port mapping visualization for all services
+   - Helpful tip reminder for viewing live logs
+
+   ![ELK Stack Health Status](./docs/health-status.png)
+   
+   *The status command provides an at-a-glance health summary with connection details and container states*
+
+2. **Automatic IP Detection**
    - Discovers host IP via default route interface
    - Multiple fallback mechanisms (hostname -I, localhost)
    - No manual IP configuration needed
 
-2. **Health Monitoring**
+3. **Health Monitoring**
    - Waits for Elasticsearch cluster health (green/yellow)
    - Configurable retry logic (30 attempts, 10s intervals)
    - Prevents premature operations
 
-3. **Container Lifecycle Management**
+4. **Container Lifecycle Management**
    - Monitors and cleans up one-shot setup containers
    - Prevents orphaned containers from cluttering the system
    - Automatic removal after successful initialization
 
-4. **Interactive Mode**
+5. **Interactive Mode**
    - Prompts for action if none provided
+   - Supports: start, stop, destroy, and status commands
    - Case-insensitive input handling
    - Clear feedback throughout operations
 
-5. **Complete Cleanup Options**
+6. **Complete Cleanup Options**
    - `stop`: Removes containers and named volumes
    - `destroy`: Full cleanup including images and anonymous volumes
    - System prune to reclaim disk space
@@ -167,6 +186,36 @@ Once started, access your stack at:
 Default credentials:
 - Username: `elastic`
 - Password: (as configured in .env)
+
+## 📊 Health Status Monitoring
+
+The script includes a comprehensive health status command that provides real-time visibility into your ELK Stack:
+
+```bash
+./run_elk_stack.sh status
+```
+
+This command displays:
+
+### Health Summary Output
+- **Elasticsearch Section**:
+  - 🔗 URL: Connection endpoint
+  - ✅ Status: Cluster health (green/yellow/red)
+  - 🔢 Version: Running version
+  - 🔧 Cluster: Cluster name
+  
+- **Kibana Login Section**:
+  - 🔗 URL: Web UI endpoint
+  - 👤 Username: Authentication user
+  - 🔑 Password: Login credentials
+
+- **Container Status Table**:
+  - Container names and states (running/stopped)
+  - Health status (healthy/unhealthy)
+  - Uptime information
+  - Port mappings for all services
+
+The status command provides a quick way to verify that all components are operational and to retrieve connection information without checking logs or Docker commands.
 
 ## 🔒 Security Considerations
 

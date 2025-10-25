@@ -49,7 +49,7 @@ docker compose version
 # Stop and remove volumes
 ./run_elk_stack.sh stop
 
-# Complete cleanup (including images)
+# Complete cleanup (including images and volumnes)
 ./run_elk_stack.sh destroy
 ```
 

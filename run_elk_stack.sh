@@ -2,7 +2,7 @@
 
 # ELK Stack Control Script
 # Actions:
-#   start   - start stack, wait for ES health (green/yellow), then clean up a finished one-shot container
+#   start   - start stack, wait for ES health (green/yellow), then clean up exited one-shot containers
 #   stop    - stop containers and remove volumes
 #   destroy - stop containers, remove volumes, remove images, prune dangling resources AND anonymous volumes
 
@@ -15,7 +15,6 @@ set -o pipefail
 # -------------------------------
 get_host_ip() {
   local ip=""
-  # Preferred: default route interface -> IPv4
   if command -v ip >/dev/null 2>&1; then
     local iface
     iface="$(ip route 2>/dev/null | awk '/default/ {print $5; exit}')"
@@ -23,17 +22,10 @@ get_host_ip() {
       ip="$(ip -4 addr show "$iface" | awk '/inet / {print $2}' | cut -d/ -f1 | head -n1)"
     fi
   fi
-
-  # Fallback 1: hostname -I (first IPv4)
   if [[ -z "$ip" ]] && command -v hostname >/dev/null 2>&1; then
     ip="$(hostname -I 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+\./){print $i; exit}}')"
   fi
-
-  # Fallback 2: localhost (last resort)
-  if [[ -z "$ip" ]]; then
-    ip="127.0.0.1"
-  fi
-
+  [[ -z "$ip" ]] && ip="127.0.0.1"
   echo "$ip"
 }
 
@@ -44,15 +36,13 @@ ELASTIC_URL="http://${HOST_IP}:9200"
 ELASTIC_USER="elastic"
 ELASTIC_PASS="elastic_password_123"
 
-# One-shot/temporary container to remove when done
-TEMP_CONTAINER_NAME="elk_920-setup-kibana-user-1"
-
 print_header() {
   echo "================================"
   echo "$1"
   echo "================================"
 }
 
+# Wait for a given container to exit, then remove it
 wait_for_container_exit() {
   local TARGET_CONTAINER="$1"
 
@@ -66,7 +56,7 @@ wait_for_container_exit() {
       STATUS=$(docker inspect -f '{{.State.Status}}' "$TARGET_CONTAINER" 2>/dev/null || true)
       if [[ "$STATUS" == "exited" ]]; then
         echo "✅ Container '$TARGET_CONTAINER' has exited. Proceeding with removal."
-        docker rm "$TARGET_CONTAINER"
+        docker rm "$TARGET_CONTAINER" >/dev/null
         break
       elif [[ -z "$STATUS" ]]; then
         echo "⚠️  Container '$TARGET_CONTAINER' not found. Skipping removal."
@@ -80,6 +70,36 @@ wait_for_container_exit() {
     echo ""
     echo "ℹ️  No container named '${TARGET_CONTAINER}' found. Skipping exit check."
   fi
+}
+
+# Find exited containers that belong to *this* compose project and remove them
+remove_exited_compose_containers() {
+  # Requires docker compose v2 and jq (already used elsewhere)
+  # Compose-scoped view ensures we only look at containers from the current project.
+  # The -s (slurp) flag tells jq to read multiple JSON objects and treat them as an array
+  local EXITED_CONTAINERS
+  EXITED_CONTAINERS=$(docker compose ps -a --format json | jq -r -s '.[] | select(.State=="exited") | .Name')
+
+  if [[ -z "$EXITED_CONTAINERS" ]]; then
+    echo "ℹ️  No exited containers found for this compose project."
+    return 0
+  fi
+
+  echo "Found exited containers:"
+  echo "$EXITED_CONTAINERS" | sed 's/^/  - /'
+
+  # Option A: Remove immediately (they are already exited)
+  while IFS= read -r cname; do
+    [[ -z "$cname" ]] && continue
+    echo "🗑️  Removing exited container: $cname"
+    docker rm "$cname" >/dev/null || true
+  done <<< "$EXITED_CONTAINERS"
+
+  # If you prefer to *verify* (belt-and-suspenders), you could instead call:
+  # while IFS= read -r cname; do
+  #   [[ -z "$cname" ]] && continue
+  #   wait_for_container_exit "$cname"
+  # done <<< "$EXITED_CONTAINERS"
 }
 
 wait_for_elasticsearch_health() {
@@ -137,8 +157,11 @@ start_stack() {
   echo "Check logs with: docker compose logs -f"
   echo "================================"
 
+  # Gate on ES health
   wait_for_elasticsearch_health
-  wait_for_container_exit "${TEMP_CONTAINER_NAME}"
+
+  # Dynamically find and remove any exited one-shot containers from this project
+  remove_exited_compose_containers
 }
 
 stop_stack() {

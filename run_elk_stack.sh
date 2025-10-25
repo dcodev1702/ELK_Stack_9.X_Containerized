@@ -100,7 +100,7 @@ print_health_summary() {
     echo "  🔗 URL:       ${ELASTIC_URL}"
     echo "  🟢 Status:    ${es_status:-unknown}"
     echo "  🧩 Version:   ${es_version:-n/a}"
-    echo "  🏷️  Cluster:   ${es_cluster:-n/a}"
+    echo "  🏷️ Cluster:   ${es_cluster:-n/a}"
   else
     echo "Elasticsearch:"
     echo "  ❌ Not reachable at ${ELASTIC_URL}"

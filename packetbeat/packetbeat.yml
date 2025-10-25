@@ -1,0 +1,152 @@
+#################### PACKETBEAT CONFIGURATION #########################
+
+# =============================== Network device ===============================
+
+packetbeat.interfaces.device: default_route
+packetbeat.interfaces.snaplen: 1518
+
+# Ignore unnecessary ports entirely
+packetbeat.interfaces.ignore_ports: [22, 443, 3389, 5601, 9200, 9300, 49152-65535]
+
+packetbeat.interfaces.poll_default_route: 1m
+packetbeat.interfaces.internal_networks: [private]
+
+# ==================== Windows Npcap settings =====================
+packetbeat.npcap:
+  never_install: true
+
+# =================================== Flows ====================================
+packetbeat.flows:
+  enabled: false
+
+# =========================== Transaction protocols ============================
+
+packetbeat.protocols:
+  - type: dns
+    ports: [53]
+    include_authorities: true
+    include_additionals: true
+
+# =========================== Elasticsearch Output =============================
+
+output.elasticsearch:
+  hosts: ["10.0.0.9:9200"]
+  username: "elastic"
+  password: "elastic_password_123"
+  protocol: "http"
+  data_stream:
+    enabled: true
+    namespace: default
+
+setup.template.enabled: true
+setup.template.type: data_stream
+
+setup.kibana:
+  host: "10.0.0.9:5601"
+  username: "elastic"
+  password: "elastic_password_123"
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+setup.ilm.enabled: false
+
+# =============================== Processors ===================================
+
+processors:
+  # --- Drop redundant metadata ---
+  - drop_fields:
+      fields:
+        - 'process'
+        - 'service'
+        - 'related'
+        - 'input'
+        - 'tags'
+        - 'ecs'
+        - 'observer'
+        - 'host.mac'
+        - 'host.os'
+        - 'agent.ephemeral_id'
+        - 'agent.id'
+        - 'agent.version'
+        - 'network.bytes'
+        - 'network.packets'
+
+  # --- Drop bad or incomplete DNS records ---
+  - drop_event.when.and:
+      - equals:
+          event.dataset: "dns"
+      - not.has_fields: ['dns.question.name']
+  - drop_event.when.equals:
+      dns.response_code: "FORMERR"
+
+  # --- Drop flow records for ignored ports (backup filter) ---
+  - drop_event.when.and:
+      - equals:
+          event.dataset: "flow"
+      - or:
+          - equals: { destination.port: 9200 }
+          - equals: { source.port: 9200 }
+          - equals: { destination.port: 9300 }
+          - equals: { source.port: 9300 }
+          - equals: { destination.port: 5601 }
+          - equals: { source.port: 5601 }
+          - equals: { destination.port: 443 }
+          - equals: { source.port: 443 }
+          - equals: { destination.port: 22 }
+          - equals: { source.port: 22 }
+          - equals: { destination.port: 3389 }
+          - equals: { source.port: 3389 }
+
+  # --- Drop Azure/internal/telemetry DNS noise ---
+  - drop_event.when.or:
+      - regexp: { dns.question.name: '.*\.internal\.cloudapp\.net$' }
+      - regexp: { dns.question.name: '.*\.azure\.com$' }
+      - regexp: { dns.question.name: '.*\.windows\.net$' }
+      - regexp: { dns.question.name: '.*\.microsoftonline\.com$' }
+      - regexp: { dns.question.name: '.*\.microsoft\.com$' }
+      - regexp: { dns.question.name: '.*\.msftncsi\.com$' }
+      - regexp: { dns.question.name: '.*\.azureedge\.net$' }
+      - regexp: { dns.question.name: '.*\.azurefd\.net$' }
+      - regexp: { dns.question.name: '.*\.azurestaticapps\.net$' }
+      - regexp: { dns.question.name: '.*\.azmk8s\.io$' }
+      - regexp: { dns.question.name: '.*\.reddog\.microsoft\.com$' }
+      - regexp: { dns.question.name: '.*\.trafficmanager\.net$' }
+      - regexp: { dns.question.name: '.*\.cloudfront\.net$' }
+      - regexp: { dns.question.name: '(^|.*\.)api\.msn\.com$' }
+      - regexp: { dns.question.name: '(^|.*\.)browser\.events\.data\.msn\.com$' }
+      - regexp: { dns.question.name: '(^|.*\.)analytics\.dvidshub\.net$' }
+      - regexp: { dns.question.name: '(^|.*\.)www\.google-analytics\.com$' }
+      - regexp: { dns.question.name: '(^|.*\.)eus2-gas-guestconfiguration-azure-com\.arc-0001\.arc-msedge\.net$' }
+      - regexp: { dns.question.name: '.*\.elastic\.co$' }
+      - regexp: { dns.question.name: '.*\.windowsupdate\.com$' }
+      - regexp: { dns.question.name: '.*\.endpoint\.security\.microsoft\.com$' }
+      - regexp: { dns.question.name: '.*\.local$' }
+      - regexp: { dns.question.name: '.*\.lan$' }
+      - network.in_range:
+          dns.answers.data: [
+            '10.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+            '100.64.0.0/10',
+            '168.63.0.0/16',
+            '169.254.0.0/16'
+          ]
+      - network.in_range:
+          dns.answers.data: ['fd00::/8', 'fe80::/10']
+      - equals: { destination.ip: "169.254.169.254" }
+
+  # --- Enrichment ---
+  - add_host_metadata:
+      when.not.contains:
+        tags: forwarded
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+
+# ================================== Logging ===================================
+
+logging.to_files: false
+logging.to_stderr: true
+logging.level: info
+logging.selectors: ["*"]

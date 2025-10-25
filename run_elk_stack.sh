@@ -74,9 +74,8 @@ wait_for_container_exit() {
 
 
 print_health_summary() {
-
   echo ""
-  echo "📊 ELK Health Summary (Compose Project)"
+  echo "📊 Health Summary (Compose Project)"
   echo "-----------------------------------"
 
   # Collect containers for THIS compose project
@@ -92,15 +91,30 @@ print_health_summary() {
   # =========================================
   local es_status es_version es_cluster
   es_status=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}/_cluster/health" | jq -r '.status // empty' 2>/dev/null || true)
-  es_version=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}"            | jq -r '.version.number // empty' 2>/dev/null || true)
-  es_cluster=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}"            | jq -r '.cluster_name // empty' 2>/dev/null || true)
+  es_version=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}" | jq -r '.version.number // empty' 2>/dev/null || true)
+  es_cluster=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}" | jq -r '.cluster_name // empty' 2>/dev/null || true)
+
+  # ANSI color codes
+  local GREEN="\033[1;32m"
+  local YELLOW="\033[1;33m"
+  local RED="\033[1;31m"
+  local RESET="\033[0m"
+
+  # Assign color + icon
+  local color symbol
+  case "$es_status" in
+    green)  color=$GREEN;  symbol="✅" ;;
+    yellow) color=$YELLOW; symbol="⚠️" ;;
+    red)    color=$RED;    symbol="❌" ;;
+    *)      color=$RESET;  symbol="❔" ;;
+  esac
 
   if [[ -n "$es_status" || -n "$es_version" ]]; then
     echo "Elasticsearch:"
-    echo "  🔗 URL:       ${ELASTIC_URL}"
-    echo "  🟢 Status:    ${es_status:-unknown}"
+    echo -e "  🔗 URL:       ${ELASTIC_URL}"
+    echo -e "  ${symbol} Status:    ${color}${es_status:-unknown}${RESET}"
     echo "  🧩 Version:   ${es_version:-n/a}"
-    echo "  🏷️ Cluster:   ${es_cluster:-n/a}"
+    echo "  🏷️  Cluster:   ${es_cluster:-n/a}"
   else
     echo "Elasticsearch:"
     echo "  ❌ Not reachable at ${ELASTIC_URL}"
@@ -135,6 +149,7 @@ print_health_summary() {
   echo ""
   echo "✅ Tip: View live logs with: docker compose logs -f"
 }
+
 
 
 

@@ -38,7 +38,7 @@ docker --version
 docker compose version
 ```
 
-**Note:** After adding your user to the docker group, you may need to log out and log back in for the changes to take effect.
+**Note:** After adding your user to the docker group, you will need to log out and log back in for the changes to take effect.
 
 ## 🚀 Quick Start
 

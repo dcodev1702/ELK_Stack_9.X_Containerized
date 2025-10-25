@@ -9,7 +9,7 @@ This Proof of Concept provides a containerized ELK Stack optimized for network t
 - **Elasticsearch 9.2.0** - Single-node deployment with security enabled
 - **Kibana 9.2.0** - Web UI for visualization and analysis  
 - **Packetbeat Support** - Pre-configured for Windows VM integration with aggressive noise filtering
-- **Automated Lifecycle Management** - Smart bash script for stack operations
+- **Automated Lifecycle Management** - Smart bash script for ELK stack operations
 
 ## 🎯 Use Case
 

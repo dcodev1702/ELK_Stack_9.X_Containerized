@@ -139,7 +139,7 @@ The `run_elk_stack.sh` script provides intelligent automation:
    - Port mapping visualization for all services
    - Helpful tip reminder for viewing live logs
 
-   ![ELK Stack Health Status](./docs/health-status.png)
+   ![ELK Stack Health Status](./images/health-status.png)
    
    *The status command provides an at-a-glance health summary with connection details and container states*
 

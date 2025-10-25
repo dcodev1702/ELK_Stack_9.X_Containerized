@@ -19,6 +19,27 @@ This PoC demonstrates efficient network monitoring for Windows VMs in enterprise
 - Security operations center (SOC) visibility
 - Quick deployment for incident response scenarios
 
+## 📦 Prerequisites
+
+### Docker Installation (Ubuntu 24.04 LTS)
+
+This project requires Docker and Docker Compose. If not already installed, follow these steps:
+
+```bash
+# Download and run the Docker installation script
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Add your user to the docker group (allows running Docker without sudo)
+sudo usermod -aG docker $USER
+
+# Verify installation
+docker --version
+docker compose version
+```
+
+**Note:** After adding your user to the docker group, you may need to log out and log back in for the changes to take effect.
+
 ## 🚀 Quick Start
 
 ```bash
@@ -28,7 +49,7 @@ This PoC demonstrates efficient network monitoring for Windows VMs in enterprise
 # Stop and remove volumes
 ./run_elk_stack.sh stop
 
-# Complete cleanup (including images & volumes)
+# Complete cleanup (including images)
 ./run_elk_stack.sh destroy
 ```
 

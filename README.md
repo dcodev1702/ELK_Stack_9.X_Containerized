@@ -57,7 +57,7 @@ docker compose version
 
 ```
 .
-├── docker-compose.yml      # ELK Stack service definitions
+├── docker-compose.yml     # ELK Stack service definitions
 ├── dot.env                # Environment variables (rename to .env)
 ├── run_elk_stack.sh       # Lifecycle management script
 ├── packetbeat/

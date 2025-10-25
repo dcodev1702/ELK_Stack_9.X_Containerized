@@ -72,6 +72,72 @@ wait_for_container_exit() {
   fi
 }
 
+
+print_health_summary() {
+
+  echo ""
+  echo "📊 Health Summary (Compose Project)"
+  echo "-----------------------------------"
+
+  # Collect containers for THIS compose project
+  mapfile -t _NAMES < <(docker compose ps -a --format json | jq -r -s '.[] | .Name')
+
+  if [[ "${#_NAMES[@]}" -eq 0 ]]; then
+    echo "ℹ️  No containers found for this compose project."
+    return 0
+  fi
+
+  # =========================================
+  # 🔍 Elasticsearch cluster info
+  # =========================================
+  local es_status es_version es_cluster
+  es_status=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}/_cluster/health" | jq -r '.status // empty' 2>/dev/null || true)
+  es_version=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}"            | jq -r '.version.number // empty' 2>/dev/null || true)
+  es_cluster=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_URL}"            | jq -r '.cluster_name // empty' 2>/dev/null || true)
+
+  if [[ -n "$es_status" || -n "$es_version" ]]; then
+    echo "Elasticsearch:"
+    echo "  🔗 URL:       ${ELASTIC_URL}"
+    echo "  🟢 Status:    ${es_status:-unknown}"
+    echo "  🧩 Version:   ${es_version:-n/a}"
+    echo "  🏷️  Cluster:   ${es_cluster:-n/a}"
+  else
+    echo "Elasticsearch:"
+    echo "  ❌ Not reachable at ${ELASTIC_URL}"
+  fi
+
+  # =========================================
+  # 💻 Kibana login info (uses Elasticsearch credentials)
+  # =========================================
+  echo ""
+  echo "Kibana Login:"
+  echo "  🔗 URL:       http://${HOST_IP}:5601"
+  echo "  👤 Username:  ${ELASTIC_USER}"
+  echo "  🔑 Password:  ${ELASTIC_PASS}"
+  echo ""
+
+  # =========================================
+  # 🧾 Container Summary Table
+  # =========================================
+  printf "%-40s  %-10s  %-10s  %-24s  %s\n" "Container" "State" "Health" "Status/Uptime" "Ports"
+  printf "%-40s  %-10s  %-10s  %-24s  %s\n" "----------------------------------------" "----------" "----------" "------------------------" "-----"
+
+  for name in "${_NAMES[@]}"; do
+    local state health status ports
+    state=$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || true)
+    health=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" 2>/dev/null || true)
+    status=$(docker ps -a --filter "name=^${name}$" --format '{{.Status}}' 2>/dev/null | head -n1)
+    ports=$(docker ps -a --filter "name=^${name}$" --format '{{.Ports}}'  2>/dev/null | head -n1)
+
+    printf "%-40s  %-10s  %-10s  %-24s  %s\n" "$name" "${state:-n/a}" "${health:--}" "${status:-n/a}" "${ports:--}"
+  done
+
+  echo ""
+  echo "✅ Tip: View live logs with: docker compose logs -f"
+}
+
+
+
 # Find exited containers that belong to *this* compose project and remove them
 remove_exited_compose_containers() {
   # Requires docker compose v2 and jq (already used elsewhere)
@@ -162,6 +228,9 @@ start_stack() {
 
   # Dynamically find and remove any exited one-shot containers from this project
   remove_exited_compose_containers
+
+  # Print the health summary dashboard
+  print_health_summary
 }
 
 stop_stack() {
@@ -186,20 +255,20 @@ ACTION="${1:-}"
 if [[ -z "$ACTION" ]]; then
   echo "No action provided."
   while true; do
-    read -r -p "Choose action [start/stop/destroy]: " ACTION
+    read -r -p "Choose action [start/status/stop/destroy]: " ACTION
     ACTION=$(echo "$ACTION" | tr '[:upper:]' '[:lower:]')
     case "$ACTION" in
-      start|stop|destroy) break ;;
-      *) echo "Invalid choice. Please enter 'start', 'stop', or 'destroy'." ;;
+      start|status|stop|destroy) break ;;
+      *) echo "Invalid choice. Please enter 'start', 'status', 'stop', or 'destroy'." ;;
     esac
   done
 else
   ACTION=$(echo "$ACTION" | tr '[:upper:]' '[:lower:]')
   case "$ACTION" in
-    start|stop|destroy) ;;
+    start|status|stop|destroy) ;;
     *)
       echo "Invalid argument: '$ACTION'"
-      echo "Usage: $0 [start|stop|destroy]"
+      echo "Usage: $0 [start|status|stop|destroy]"
       exit 2
       ;;
   esac
@@ -207,6 +276,7 @@ fi
 
 case "$ACTION" in
   start)   start_stack ;;
+  status)  print_health_summary ;;
   stop)    stop_stack ;;
   destroy) destroy_stack ;;
 esac

@@ -20,7 +20,6 @@ packetbeat.flows:
   enabled: false
 
 # =========================== Transaction protocols ============================
-
 packetbeat.protocols:
   - type: dns
     ports: [53]
@@ -28,7 +27,6 @@ packetbeat.protocols:
     include_additionals: true
 
 # =========================== Elasticsearch Output =============================
-
 output.elasticsearch:
   hosts: ["10.0.0.9:9200"]
   username: "elastic"
@@ -53,7 +51,6 @@ setup.template.settings:
 setup.ilm.enabled: false
 
 # =============================== Processors ===================================
-
 processors:
   # --- Drop redundant metadata ---
   - drop_fields:
@@ -145,7 +142,6 @@ processors:
   - add_kubernetes_metadata: ~
 
 # ================================== Logging ===================================
-
 logging.to_files: false
 logging.to_stderr: true
 logging.level: info

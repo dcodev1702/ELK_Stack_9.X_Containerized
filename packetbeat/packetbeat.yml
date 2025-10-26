@@ -51,6 +51,14 @@ setup.ilm.enabled: false
 
 # =============================== Processors ===================================
 processors:
+
+  # --- Enrichment ---
+  - add_host_metadata:
+      when.not.contains:
+        tags: forwarded
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+
   # --- Drop redundant metadata ---
   - drop_fields:
       fields:
@@ -62,9 +70,14 @@ processors:
         - 'ecs'
         - 'observer'
         - 'host.mac'
-        - 'host.os'
+        - 'host.os.version'
+        - 'host.os.platform'
+        - 'host.os.family'
+        - 'host.architecture'
+        - 'host.os.type'
         - 'agent.ephemeral_id'
         - 'agent.id'
+        - 'agent.name'
         - 'agent.version'
         - 'network.bytes'
         - 'network.packets'
@@ -132,13 +145,6 @@ processors:
       - network.in_range:
           dns.answers.data: ['fd00::/8', 'fe80::/10']
       - equals: { destination.ip: "169.254.169.254" }
-
-  # --- Enrichment ---
-  - add_host_metadata:
-      when.not.contains:
-        tags: forwarded
-  - add_docker_metadata: ~
-  - add_kubernetes_metadata: ~
 
 # ================================== Logging ===================================
 logging.to_files: false

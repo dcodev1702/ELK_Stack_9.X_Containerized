@@ -1,6 +1,6 @@
 # ELK Stack 9.2.0 Containerized - Network Monitoring PoC
 
-A production-ready ELK Stack (Elasticsearch & Kibana) deployment using Docker Compose, designed to support Windows VMs running Packetbeat 9.2.0 for efficient network monitoring with minimal noise.
+A PoC ELK Stack (Elasticsearch & Kibana) deployment using Docker Compose, designed to support Windows VMs running Packetbeat 9.2.0 for efficient network monitoring with minimal noise.
 
 ## 📋 Overview
 

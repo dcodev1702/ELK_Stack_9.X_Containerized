@@ -114,7 +114,7 @@ The `packetbeat.yml` is highly optimized to reduce noise in enterprise environme
 
 3. **Metadata Minimization** - Drops unnecessary fields:
    - Process, service, and related metadata
-   - Host OS and MAC information
+   - Host OS, ARCH, PLATFORM, and MAC information
    - Agent identifiers
    - Network byte/packet counts
 

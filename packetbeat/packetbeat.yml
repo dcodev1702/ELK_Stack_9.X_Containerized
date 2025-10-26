@@ -26,14 +26,22 @@ packetbeat.protocols:
     include_additionals: true
 
 # =========================== Elasticsearch Output =============================
-output.elasticsearch:
-  hosts: ["10.0.0.9:9200"]
-  username: "elastic"
-  password: "elastic_password_123"
-  protocol: "http"
-  data_stream:
-    enabled: true
-    namespace: default
+output:
+  # --- Elasticsearch Output (default) ---
+  elasticsearch:
+    enabled: ${DEBUG_OUTPUT:false} == false
+    hosts: ["10.0.0.9:9200"]
+    username: "elastic"
+    password: "elastic_password_123"
+    protocol: "http"
+    data_stream:
+      enabled: true
+      namespace: default
+
+  # --- Console Output (for debugging) ---
+  console:
+    enabled: ${DEBUG_OUTPUT:false}
+    pretty: true
 
 setup.template.enabled: true
 setup.template.type: data_stream

@@ -16,7 +16,7 @@ This Proof of Concept provides a containerized ELK Stack optimized for network t
 This PoC demonstrates efficient network monitoring for Windows VMs in enterprise environments, particularly useful for:
 - DNS traffic analysis and anomaly detection
 - Reduced storage footprint through intelligent filtering
-- Security operations center (SOC) visibility
+- Security Operations Center (SOC) visibility
 - Quick deployment for incident response scenarios
 
 ## 📦 Prerequisites
@@ -32,9 +32,6 @@ sudo sh get-docker.sh
 
 # Add your user to the docker group (allows running Docker without sudo)
 sudo usermod -aG docker $USER
-
-# Apply the group changes (or log out and back in)
-newgrp docker
 
 # Verify installation
 docker --version

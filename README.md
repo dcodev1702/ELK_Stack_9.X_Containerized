@@ -123,6 +123,14 @@ The `packetbeat.yml` is highly optimized to reduce noise in enterprise environme
 4. **Protocol Focus** - Currently configured for:
    - DNS traffic analysis (port 53)
    - Flows disabled to reduce volume
+  
+5. **Processor Filter Validation** - Validate applied packet filters:
+   ```powershell
+   # In PowerShell
+   $env:DEBUG_OUTPUT="true"; .\packetbeat.exe -e -d "publish"
+   ```
+   - Bypasses Elasticsearch and prints enriched/dropped fields to STDOUT (clean JSON)
+   - Feel free to use jq.exe to enhance JSON visibility
 
 #### Windows VM Integration
 

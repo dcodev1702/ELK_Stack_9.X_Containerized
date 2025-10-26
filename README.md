@@ -2,6 +2,8 @@
 
 A PoC ELK Stack (Elasticsearch & Kibana) deployment using Docker Compose, designed to support Windows VMs running Packetbeat 9.2.0 for efficient network monitoring with minimal noise.
 
+![Kibana_Dashboard](./images/kibana.png)
+
 ## 📋 Overview
 
 This Proof of Concept provides a containerized ELK Stack optimized for network traffic analysis from Windows environments. The solution features:

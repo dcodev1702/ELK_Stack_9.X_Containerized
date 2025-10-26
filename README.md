@@ -218,7 +218,7 @@ This command displays:
   - Uptime information
   - Port mappings for all services
     
- ![ELK Stack Health Status](./docs/health-status.png)
+ ![ELK Stack Health Status](./images/health-status.png)
    
 *The status command provides an at-a-glance health summary with connection details and container states w/o checking logs or Docker commands.*
 

@@ -70,12 +70,14 @@ chmod +x elk_stack.sh
 
 ```
 .
-├── docker-compose.yml      # ELK Stack service definitions
-├── dot.env                # Environment variables (rename to .env)
+├── docker-compose.yml    # ELK Stack service definitions
+├── dot.env               # Environment variables (rename to .env)
 ├── elk_stack.sh          # Lifecycle management script
 ├── packetbeat/
-│   └── packetbeat.yml     # Filtered Packetbeat configuration
-└── README.md
+│   └── packetbeat.yml    # Filtered Packetbeat configuration (Windows)
+├── images/
+|   └── *.png             # Stored images
+└── README.md             # You are here
 ```
 
 ## 🔧 Configuration
@@ -261,7 +263,7 @@ docker compose logs elasticsearch
 docker compose logs kibana
 
 # Verify containers are running
-docker compose ps
+docker compose ps -a
 
 # Inspect network
 docker network ls

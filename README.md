@@ -35,9 +35,6 @@ sudo sh get-docker.sh
 # Add your user to the docker group (allows running Docker without sudo)
 sudo usermod -aG docker $USER
 
-# Apply the group changes (or log out and back in)
-newgrp docker
-
 # Verify installation
 docker --version
 docker compose version

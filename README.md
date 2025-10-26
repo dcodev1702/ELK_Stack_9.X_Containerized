@@ -136,10 +136,6 @@ The `run_elk_stack.sh` script provides intelligent automation:
    - Port mapping visualization for all services
    - Helpful tip reminder for viewing live logs
 
-   ![ELK Stack Health Status](./images/health-status.png)
-   
-   *The status command provides an at-a-glance health summary with connection details and container states*
-
 2. **Automatic IP Detection**
    - Discovers host IP via default route interface
    - Multiple fallback mechanisms (hostname -I, localhost)
@@ -211,8 +207,10 @@ This command displays:
   - Health status (healthy/unhealthy)
   - Uptime information
   - Port mappings for all services
-
-The status command provides a quick way to verify that all components are operational and to retrieve connection information without checking logs or Docker commands.
+    
+ ![ELK Stack Health Status](./images/health-status.png)
+   
+*The status command provides an at-a-glance health summary with connection details and container states without checking logs or Docker comamnds.*
 
 ## 🔒 Security Considerations
 

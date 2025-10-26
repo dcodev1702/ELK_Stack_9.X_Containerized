@@ -33,6 +33,9 @@ sudo sh get-docker.sh
 # Add your user to the docker group (allows running Docker without sudo)
 sudo usermod -aG docker $USER
 
+# Apply the group changes (or log out and back in)
+newgrp docker
+
 # Verify installation
 docker --version
 docker compose version
@@ -40,20 +43,27 @@ docker compose version
 
 **Note:** After adding your user to the docker group, you may need to log out and log back in for the changes to take effect.
 
+### Make Script Executable
+
+```bash
+# Make the elk_stack.sh script executable
+chmod +x elk_stack.sh
+```
+
 ## 🚀 Quick Start
 
 ```bash
 # Start the stack
-./run_elk_stack.sh start
+./elk_stack.sh start
 
 # Check health status
-./run_elk_stack.sh status
+./elk_stack.sh status
 
 # Stop and remove volumes
-./run_elk_stack.sh stop
+./elk_stack.sh stop
 
 # Complete cleanup (including images)
-./run_elk_stack.sh destroy
+./elk_stack.sh destroy
 ```
 
 ## 📁 Project Structure
@@ -62,7 +72,7 @@ docker compose version
 .
 ├── docker-compose.yml      # ELK Stack service definitions
 ├── dot.env                # Environment variables (rename to .env)
-├── run_elk_stack.sh       # Lifecycle management script
+├── elk_stack.sh          # Lifecycle management script
 ├── packetbeat/
 │   └── packetbeat.yml     # Filtered Packetbeat configuration
 └── README.md
@@ -124,12 +134,12 @@ Deploy Packetbeat 9.2.0 on your Windows VMs with this configuration:
 
 ## 🎯 Script Efficiencies
 
-The `run_elk_stack.sh` script provides intelligent automation:
+The `elk_stack.sh` script provides intelligent automation:
 
 ### Smart Features
 
 1. **Health Status Monitoring (NEW)**
-   - Real-time cluster health display with `./run_elk_stack.sh status`
+   - Real-time cluster health display with `./elk_stack.sh status`
    - Shows Elasticsearch cluster state with color-coded status (green ✅)
    - Displays Kibana access URL and authentication details
    - Container health table with uptime metrics (e.g., "Up 38 minutes")
@@ -185,7 +195,7 @@ Default credentials:
 The script includes a comprehensive health status command that provides real-time visibility into your ELK Stack:
 
 ```bash
-./run_elk_stack.sh status
+./elk_stack.sh status
 ```
 
 This command displays:
@@ -208,9 +218,9 @@ This command displays:
   - Uptime information
   - Port mappings for all services
     
- ![ELK Stack Health Status](./images/health-status.png)
+ ![ELK Stack Health Status](./docs/health-status.png)
    
-*The status command provides an at-a-glance health summary with connection details and container states without checking logs or Docker comamnds.*
+*The status command provides an at-a-glance health summary with connection details and container states w/o checking logs or Docker commands.*
 
 ## 🔒 Security Considerations
 

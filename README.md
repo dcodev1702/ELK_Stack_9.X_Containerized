@@ -62,7 +62,7 @@ chmod +x elk_stack.sh
 # Stop and remove volumes
 ./elk_stack.sh stop
 
-# Complete cleanup (including images)
+# Complete cleanup (including images and volumes)
 ./elk_stack.sh destroy
 ```
 

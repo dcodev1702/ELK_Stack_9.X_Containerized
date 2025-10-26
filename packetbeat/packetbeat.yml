@@ -1,7 +1,6 @@
 #################### WINDOWS PACKETBEAT CONFIGURATION #########################
 
 # =============================== Network device ===============================
-
 packetbeat.interfaces.device: default_route
 packetbeat.interfaces.snaplen: 1518
 
